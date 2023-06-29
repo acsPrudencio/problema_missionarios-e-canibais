@@ -38,12 +38,18 @@ def checaFinal():
         print("estado final alcançado, todo mundo atravessado")
 
 
+# 0-missionarioEsquerda
+# 1-CanibaisEsquerda
+# 2-MissionarioDireita
+# 3-CanibaisDireita
+
+
 estadoInicial = [3, 3, 0, 0, 0]
 estadoAtual = estadoInicial
 # combinações possiveis de estados e canibais
 operadores = [(1, 0), (1, 1), (2, 0), (0, 2)]
 
-borda = []
+fronteiraEstados = []
 visitados = []
 
 
@@ -71,34 +77,36 @@ def deslocaCanoa(estadoAtual, nummissionarios=0, numcanibais=0):
 
     for i in range(min(nummissionarios, estadoAtual[missionariosOrigem])):
         estadoAtual[missionariosOrigem] -= 1
-        estadoAtual[canibaisDestino] -= 1
+        estadoAtual[missionariosDestino] += 1
 
     # transportando os canibais
 
     for i in range(min(numcanibais, estadoAtual[canibaisOrigem])):
         estadoAtual[canibaisOrigem] -= 1
-        estadoAtual[canibaisDestino] -= 1
+        estadoAtual[canibaisDestino] += 1
 
     return estadoAtual
 
 
-def sucessores(estado):
-    sucessores = []
-    # i e j quantidade de missionarios e canibais a transferir
+def estadosSucessores(estado):
+    estadosSucessores = []
+    # i e j  quantidade de missionarios e canibais a transferir
     for (i, j) in operadores:
         # desloca canoa retorna um estado possivel atingido pela transferencia
 
         s = deslocaCanoa(estado[:], i, j)
+        # s = deslocaCanoa(estado[:],i,j)
         if s == None: continue
+        # checa se existem mais missionarios do que canibais nas margens do rio. s[0]= canibaisEsquerda,s[1] = MissionariosEsquerda,s[2] = CanibaisDireita, etc...
         if (s[0] < s[1] and s[0] > 0) or (s[2] < s[3] and s[2] > 0): continue
         if s in visitados: continue
         # coloca o estado gerado na fronteira de estados
-        sucessores.append(s)
-    return sucessores
+        estadosSucessores.append(s)
+    return estadosSucessores
 
 
 def obtemAdjacenteNaoVisitado(elementoAnalisar):
-    l = sucessores(elementoAnalisar)
+    l = estadosSucessores(elementoAnalisar)
     if len(l) > 0:
         return l[0]
     else:
@@ -106,7 +114,7 @@ def obtemAdjacenteNaoVisitado(elementoAnalisar):
 
 
 # testa se chegamos a um estado final do programa. Estado com canibais e missionários no lado direito
-def testeMeta(estado):
+def testeObjetivo(estado):
     if estado[2] >= 3 and estado[3] >= 3:
         return True
     else:
@@ -115,44 +123,45 @@ def testeMeta(estado):
 
 # função de busca em profundidade
 def dfs(estadoInicial):
-    borda.append(estadoInicial)
-    while len(borda) != 0:
-        elementoAnalisar = borda[len(borda) - 1]
-        if testeMeta(elementoAnalisar): break
+    fronteiraEstados.append(estadoInicial)
+    while len(fronteiraEstados) != 0:
+        elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
+        if testeObjetivo(elementoAnalisar): break
         v = obtemAdjacenteNaoVisitado(elementoAnalisar)
         if v == -1:
-            borda.pop()
+            fronteiraEstados.pop()
         else:
             visitados.append(v)
-            borda.append(v)
+            fronteiraEstados.append(v)
     else:
         print("caminho não encontrado, busca sem sucesso")
-    return borda
+    return fronteiraEstados
 
 
-def bfs(estadoInicial):
-    borda = deque()
-    borda.append(estadoInicial)
+def buscaProfundidade(estadoInicial):
+    fronteiraEstados = deque()
+    fronteiraEstados.append(estadoInicial)
     visitados = set()
     visitados.add(tuple(estadoInicial))
 
-    while len(borda) != 0:
-        elementoAnalisar = borda.popleft()
+    while len(fronteiraEstados) != 0:
+        elementoAnalisar = fronteiraEstados.popleft()
 
-        if testeMeta(elementoAnalisar):
+        if testeObjetivo(elementoAnalisar):
             return elementoAnalisar
 
-        for s in sucessores(elementoAnalisar):
+        for s in estadosSucessores(elementoAnalisar):
             if tuple(s) not in visitados:
                 visitados.add(tuple(s))
-                borda.append(s)
+                fronteiraEstados.append(s)
 
     return None
 
 
 # Exemplo de uso
 estadoInicial = [3, 3, 0, 0, 0]
-resultado = bfs(estadoInicial)
+estadosNivel = estadosSucessores(estadoInicial)
+resultado = buscaProfundidade(estadoInicial)
 
 if resultado is not None:
     print("Caminho encontrado:")
