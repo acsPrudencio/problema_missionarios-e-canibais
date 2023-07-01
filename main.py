@@ -57,6 +57,7 @@ def deslocaCanoa(estadoAtual, nummissionarios=0, numcanibais=0):
     if nummissionarios + numcanibais > 2:
         print("nao eh possivel transposrtar mais de duas pessoas.")
 
+    moveCanoa = False
     if estadoAtual[-1] == 0:
         missionariosOrigem = 0
         canibaisOrigem = 1
@@ -73,18 +74,22 @@ def deslocaCanoa(estadoAtual, nummissionarios=0, numcanibais=0):
         return
 
     # atualizando a posição do submarino
-    estadoAtual[-1] = 1 - estadoAtual[-1]
 
     for i in range(min(nummissionarios, estadoAtual[missionariosOrigem])):
         estadoAtual[missionariosOrigem] -= 1
         estadoAtual[missionariosDestino] += 1
+        moveCanoa = True
 
     # transportando os canibais
 
     for i in range(min(numcanibais, estadoAtual[canibaisOrigem])):
         estadoAtual[canibaisOrigem] -= 1
         estadoAtual[canibaisDestino] += 1
+        moveCanoa = True
+    if (not moveCanoa):
+        return
 
+    estadoAtual[-1] = 1 - estadoAtual[-1]
     return estadoAtual
 
 
@@ -110,7 +115,7 @@ def obtemAdjacenteNaoVisitado(elementoAnalisar):
     if len(l) > 0:
         return l[0]
     else:
-        return -l
+        return None
 
 
 # testa se chegamos a um estado final do programa. Estado com canibais e missionários no lado direito
@@ -122,23 +127,26 @@ def testeObjetivo(estado):
 
 
 # função de busca em profundidade
-def dfs(estadoInicial):
+def buscaProfundidade(estadoInicial):
     fronteiraEstados.append(estadoInicial)
     while len(fronteiraEstados) != 0:
         elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
-        if testeObjetivo(elementoAnalisar): break
+        if testeObjetivo(elementoAnalisar):
+            return elementoAnalisar
+        print(elementoAnalisar)
+        visitados.append(elementoAnalisar)
         v = obtemAdjacenteNaoVisitado(elementoAnalisar)
-        if v == -1:
+        if v == None:
             fronteiraEstados.pop()
         else:
-            visitados.append(v)
-            fronteiraEstados.append(v)
+            if v not in visitados:
+                fronteiraEstados.append(v)
     else:
         print("caminho não encontrado, busca sem sucesso")
     return fronteiraEstados
 
 
-def buscaProfundidade(estadoInicial):
+def buscaLargura(estadoInicial):
     fronteiraEstados = deque()
     fronteiraEstados.append(estadoInicial)
     visitados = set()
@@ -146,10 +154,10 @@ def buscaProfundidade(estadoInicial):
 
     while len(fronteiraEstados) != 0:
         elementoAnalisar = fronteiraEstados.popleft()
-
+        print(elementoAnalisar)
         if testeObjetivo(elementoAnalisar):
             return elementoAnalisar
-
+        print(elementoAnalisar)
         for s in estadosSucessores(elementoAnalisar):
             if tuple(s) not in visitados:
                 visitados.add(tuple(s))
@@ -160,8 +168,10 @@ def buscaProfundidade(estadoInicial):
 
 # Exemplo de uso
 estadoInicial = [3, 3, 0, 0, 0]
-estadosNivel = estadosSucessores(estadoInicial)
-resultado = buscaProfundidade(estadoInicial)
+# estadosNivel = estadosSucessores(estadoInicial)
+print(fronteiraEstados)
+
+resultado = buscaLargura(estadoInicial)
 
 if resultado is not None:
     print("Caminho encontrado:")
