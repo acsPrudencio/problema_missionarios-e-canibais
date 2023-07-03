@@ -1,42 +1,15 @@
 from collections import deque
+import heapq
 
-esquerda = [0, 0]
-direita = [0, 0]
-estadoInicial = [3, 3, 0, 0]
-estadoAtual = estadoInicial
+# transportando da esquerda pra direita
 
-
-def atravessarRio(posCanoa, numCanibais, numMissionarios):
-    if (numCanibais + numMissionarios > 2):
-        print("Não é possivel transportar mais de duas pessoas")
-
-    if (posCanoa == 0):
-        # transportando da esquerda pra direita
-        esquerda[0] -= numCanibais
-        esquerda[1] -= numMissionarios
-        direita[0] += numCanibais
-        direita[1] += numMissionarios
-
-        posCanoa = 1
-    else:
-        # transportando da direita pra esquerda
-        direita[0] -= numCanibais
-        direita[1] -= numMissionarios
-        esquerda[0] += numCanibais
-        esquerda[1] += numMissionarios
-        posCanoa = 0
-    # ##chegando na margem direita
-    ##1.(1,1) - um missionario um canibal
-    ##1.(2,0) - dois missionarios zero canibais
-    ##1.(0,2) - zero missionarios dois canibais
-    ##1.(1,1) - um missionario um canibal
-
-
-##checa se chegamos a um estado final
-def checaFinal():
-    if (esquerda == [0, 0]):
-        print("estado final alcançado, todo mundo atravessado")
-
+# chegando na margem direita
+# 1.(1,1) - um missionario um canibal
+# 1.(2,0) - dois missionarios zero canibais
+# 1.(0,2) - zero missionarios dois canibais
+# 1.(1,1) - um missionario um canibal
+#
+# checa se chegamos a um estado final
 
 # 0-missionarioEsquerda
 # 1-CanibaisEsquerda
@@ -73,7 +46,7 @@ def deslocaCanoa(estadoAtual, nummissionarios=0, numcanibais=0):
     if estadoAtual[missionariosOrigem] == 0 and estadoAtual[canibaisOrigem] == 0:
         return
 
-    # atualizando a posição do submarino
+    # atualizando a posição da canoa
 
     for i in range(min(nummissionarios, estadoAtual[missionariosOrigem])):
         estadoAtual[missionariosOrigem] -= 1
@@ -111,7 +84,7 @@ def estadosSucessores(estado):
 
 
 def obtemAdjacenteNaoVisitado(elementoAnalisar):
-    l = estadosSucessores(elementoAnalisar)
+    l = estadosSucessores(elementoAnalisar[:])  # Correção: use elementoAnalisar[:]
     if len(l) > 0:
         return l[0]
     else:
@@ -166,12 +139,73 @@ def buscaLargura(estadoInicial):
     return None
 
 
+# obtem os nós sucessores, e entre eles o de menor custo
+
+def obtemMenorCusto(elementoAnalisar):
+    custo = {}
+    l = estadosSucessores(elementoAnalisar)
+    if len(l) == 0:
+        return None
+    i = 0
+    for c in l:
+        custo[c] = (c, (c[0] + c[1]) / 2)
+
+    return min(custo)
+
+
+# Retorna a estimativa do custo que resta (h(n)) pra alcançar o objetivo a partir do estado
+
+def heuristicaAestrela(estado):
+    numMissionariosEsquerda = estado[0]
+    numCanibaisEsquerda = estado[1]
+    return numMissionariosEsquerda + numCanibaisEsquerda
+
+
+# função de busca em profundidade
+def buscaGulosa(estadoInicial):
+    fronteiraEstados.append(estadoInicial)
+    while len(fronteiraEstados) != 0:
+        elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
+        if testeObjetivo(elementoAnalisar):
+            return elementoAnalisar
+        print(elementoAnalisar)
+        visitados.append(elementoAnalisar)
+        v = obtemMenorCusto(elementoAnalisar)
+        if v == None:
+            fronteiraEstados.pop()
+        else:
+            if v not in visitados:
+                fronteiraEstados.append(v)
+    else:
+        print("caminho não encontrado, busca sem sucesso")
+    return fronteiraEstados
+
+
+def buscaAestrela(estadoInicial):
+    fronteiraEstados = []
+    heapq.heappush(fronteiraEstados, ([0, estadoInicial]))
+    visitados = []
+    while len(fronteiraEstados) != 0:
+        elementoAnalisar = heapq.heappop(fronteiraEstados)
+    if testeObjetivo(elementoAnalisar):
+        return elementoAnalisar
+    visitados.append(elementoAnalisar)
+    for s in estadosSucessores(elementoAnalisar):
+        if s in visitados:
+            continue
+        g = elementoAnalisar[4] + 1  # custo ja percorrido + custo da ação atual
+        h = heuristicaAestrela(s)  # heuristica para o estado s
+        f = g + h  # custo total = custo ja percorrido + estimativa do custo que resta
+        heapq.heappush(fronteiraEstados, (f, s))
+    return None
+
+
 # Exemplo de uso
 estadoInicial = [3, 3, 0, 0, 0]
 # estadosNivel = estadosSucessores(estadoInicial)
 print(fronteiraEstados)
 
-resultado = buscaLargura(estadoInicial)
+resultado = buscaGulosa(estadoInicial)
 
 if resultado is not None:
     print("Caminho encontrado:")
@@ -179,3 +213,11 @@ if resultado is not None:
         print(estado)
 else:
     print("Caminho não encontrado, busca sem sucesso")
+
+# resultadoestrela = buscaAestrela(estadoInicial)
+
+# if resultadoestrela is not None:
+#    print("Caminho encontrado:")
+#    print(resultadoestrela)  # Imprime o estado diretamente
+# else:
+#    print("Caminho não encontrado, busca sem sucesso")
