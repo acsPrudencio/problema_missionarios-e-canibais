@@ -107,6 +107,7 @@ def estadosSucessores(estado):
             direcao = "<-"
         # coloca o estado gerado na fronteira de estados
         estadosSucessores.append(s)
+    #print("Próximos estados possíveis: "+str(estadosSucessores))
     return estadosSucessores
 
 
@@ -134,6 +135,8 @@ def buscaProfundidade(estadoInicial):
     while len(fronteiraEstados) != 0:
         elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
         if testeObjetivo(elementoAnalisar):
+            print("quantidade de nós visitados: ")
+            print(len(visitados))
             return elementoAnalisar
         print(elementoAnalisar)
         visitados.append(elementoAnalisar)
@@ -169,6 +172,8 @@ def buscaLargura(estadoInicial):
 
         # print(elementoAnalisar)
         if testeObjetivo(elementoAnalisar):
+            print("quantidade de nós visitados: ")
+            print(len(visitados))
             return elementoAnalisar
         # print(elementoAnalisar)
         for s in estadosSucessores(elementoAnalisar):
@@ -209,6 +214,8 @@ def buscaGulosa(estadoInicial):
         elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
         if testeObjetivo(elementoAnalisar):
             print(elementoAnalisar)
+            print("quantidade de nós visitados: ")
+            print(len(visitados))
             return elementoAnalisar
         print(elementoAnalisar)
         visitados.append(elementoAnalisar)
@@ -238,7 +245,9 @@ estadoInicial = [3, 3, 0, 0, 0]
 # estadosNivel = estadosSucessores(estadoInicial)
 print(fronteiraEstados)
 
-resultado = buscaProfundidade(estadoInicial)
+#resultado = buscaProfundidade(estadoInicial)
+#resultado = buscaGulosa(estadoInicial)
+resultado = buscaLargura(estadoInicial)
 
 if resultado is not None:
     print("Caminho encontrado:")
