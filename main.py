@@ -5,39 +5,8 @@ esquerda = [0, 0]
 direita = [0, 0]
 estadoInicial = [3, 3, 0, 0]
 estadoAtual = estadoInicial
-
-
-def atravessarRio(posCanoa, numCanibais, numMissionarios):
-    if (numCanibais + numMissionarios > 2):
-        print("Não é possivel transportar mais de duas pessoas")
-
-    if (posCanoa == 0):
-        # transportando da esquerda pra direita
-        esquerda[0] -= numCanibais
-        esquerda[1] -= numMissionarios
-        direita[0] += numCanibais
-        direita[1] += numMissionarios
-
-        posCanoa = 1
-    else:
-        # transportando da direita pra esquerda
-        direita[0] -= numCanibais
-        direita[1] -= numMissionarios
-        esquerda[0] += numCanibais
-        esquerda[1] += numMissionarios
-        posCanoa = 0
-    # ##chegando na margem direita
-    ##1.(1,1) - um missionario um canibal
-    ##1.(2,0) - dois missionarios zero canibais
-    ##1.(0,2) - zero missionarios dois canibais
-    ##1.(1,1) - um missionario um canibal
-
-
-##checa se chegamos a um estado final
-def checaFinal():
-    if (esquerda == [0, 0]):
-        print("estado final alcançado, todo mundo atravessado")
-
+global numGerados
+numGerados = 0
 
 # 0-missionarioEsquerda
 # 1-CanibaisEsquerda
@@ -91,6 +60,7 @@ def deslocaCanoa(estadoAtual, nummissionarios=0, numcanibais=0):
 
 
 def estadosSucessores(estado):
+    global numGerados
     estadosSucessores = []
     direcao = ""
     # i e j  quantidade de missionarios e canibais a transferir
@@ -99,6 +69,7 @@ def estadosSucessores(estado):
         s = deslocaCanoa(estado[:], i, j)
         if s == None: continue
         # checa se existem mais missionarios do que canibais nas margens do rio. s[0]= canibaisEsquerda,s[1] = MissionariosEsquerda,s[2] = CanibaisDireita, etc...
+        numGerados += 1
         if (s[0] < s[1] and s[0] > 0) or (s[2] < s[3] and s[2] > 0): continue
         if s in visitados: continue
         if (estado[4] == 0):
@@ -107,7 +78,7 @@ def estadosSucessores(estado):
             direcao = "<-"
         # coloca o estado gerado na fronteira de estados
         estadosSucessores.append(s)
-    #print("Próximos estados possíveis: "+str(estadosSucessores))
+    print("Próximos estados possíveis: "+str(estadosSucessores))
     return estadosSucessores
 
 
@@ -129,14 +100,15 @@ def testeObjetivo(estado):
 
 # função de busca em profundidade
 def buscaProfundidade(estadoInicial):
+    global numGerados
     fronteiraEstados.append(estadoInicial)
     direcao = ""
 
     while len(fronteiraEstados) != 0:
         elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
         if testeObjetivo(elementoAnalisar):
-            print("quantidade de nós visitados: ")
-            print(len(visitados))
+            print(f"quantidade de nós visitados: {len(visitados)}")
+            print(f"quantidade de nós gerados: {numGerados}")
             return elementoAnalisar
         print(elementoAnalisar)
         visitados.append(elementoAnalisar)
@@ -159,6 +131,7 @@ def buscaProfundidade(estadoInicial):
 
 
 def buscaLargura(estadoInicial):
+    global numGerados
     fronteiraEstados = deque()
     fronteiraEstados.append(estadoInicial)
     e = estadoInicial
@@ -172,8 +145,8 @@ def buscaLargura(estadoInicial):
 
         # print(elementoAnalisar)
         if testeObjetivo(elementoAnalisar):
-            print("quantidade de nós visitados: ")
-            print(len(visitados))
+            print(f"quantidade de nós visitados: {len(visitados)}")
+            print(f"quantidade de nós gerados: {numGerados}")
             return elementoAnalisar
         # print(elementoAnalisar)
         for s in estadosSucessores(elementoAnalisar):
@@ -207,6 +180,7 @@ def obtemMenorCusto(elementoAnalisar):
 
 # função de busca em profundidade
 def buscaGulosa(estadoInicial):
+    global numGerados
     fronteiraEstados.append(estadoInicial)
     direcao = ""
 
@@ -214,8 +188,8 @@ def buscaGulosa(estadoInicial):
         elementoAnalisar = fronteiraEstados[len(fronteiraEstados) - 1]
         if testeObjetivo(elementoAnalisar):
             print(elementoAnalisar)
-            print("quantidade de nós visitados: ")
-            print(len(visitados))
+            print(f"quantidade de nós visitados: {len(visitados)}")
+            print(f"quantidade de nós gerados: {numGerados}")
             return elementoAnalisar
         print(elementoAnalisar)
         visitados.append(elementoAnalisar)
@@ -246,8 +220,8 @@ estadoInicial = [3, 3, 0, 0, 0]
 print(fronteiraEstados)
 
 #resultado = buscaProfundidade(estadoInicial)
-#resultado = buscaGulosa(estadoInicial)
-resultado = buscaLargura(estadoInicial)
+resultado = buscaGulosa(estadoInicial)
+#resultado = buscaLargura(estadoInicial)
 
 if resultado is not None:
     print("Caminho encontrado:")
@@ -256,4 +230,4 @@ if resultado is not None:
 else:
     print("Caminho não encontrado, busca sem sucesso")
 end = time.time()
-print(end - start)
+print(f"{((end - start)*1000)} ms")
